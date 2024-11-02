@@ -8,6 +8,8 @@ import { FieldValues, useForm } from "react-hook-form";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 import "@/app/(user)/register/register.css";
+import { useStateContext } from "@/context/contextprovider";
+import axiosClient from './../../axiosClient';
 
 const RegisterForm = () => {
 	const {
@@ -22,6 +24,7 @@ const RegisterForm = () => {
 	const [serverErr, setSeverErr] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
+	const { setUser, setToken } = useStateContext();
 
 	const togglePasswordVisibility = () => {
 		setShowPassword((prev) => !prev);
@@ -31,7 +34,25 @@ const RegisterForm = () => {
 		setShowConfirmPassword((prev) => !prev);
 	};
 
-	const onSubmit = (data: FieldValues) => console.log(data);
+	const onSubmit = (data: FieldValues) => {
+		const payload = {
+			name: nameRef.current.value,
+			email: emailRef.current.value,
+			password: passwordRef.current.value,
+		  };
+		  axiosClient
+			.post("/register", payload)
+			.then(({ data }) => {
+			  setUser(data.user);
+			  setToken(data.token);
+			})
+			.catch((err) => {
+			  const response = err.response;
+			  if (response && response.status === 422) {
+				console.log(response.data.errors);
+			  }
+			});
+	};
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="signup-form">

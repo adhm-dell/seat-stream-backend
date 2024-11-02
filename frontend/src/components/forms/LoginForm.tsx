@@ -6,8 +6,10 @@ import ButtonSpinner from "../ButtonSpinner";
 import { useRouter } from "next/navigation";
 import { FieldValues, useForm } from "react-hook-form";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-
+import axiosClient from "../../axiosClient";
+import { useStateContext } from "../../context/contextprovider";
 import "@/app/(user)/login/login.css";
+
 
 const LoginForm = () => {
 	
@@ -21,7 +23,7 @@ const LoginForm = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
-
+	const { setUser, setToken } = useStateContext();
 
 	const togglePasswordVisibility = () => {
 		setShowPassword(!showPassword);
@@ -31,7 +33,27 @@ const LoginForm = () => {
 		setErrorMessage("");
 	};
 
-	const onSubmit = (data: FieldValues) => console.log(data);
+	const onSubmit = (data: FieldValues) => {
+		
+		const payload = {
+			email: data.usernameOrEmail,
+			password: data.password,
+		  };
+		  
+          setIsLoading(true);
+		  axiosClient
+			.post("/login", payload)
+			.then(({ data }) => {
+			  setUser(data.user);
+			  setToken(data.token);
+			})
+			.catch((err) => {
+			  const response = err.response;
+			  if (response && response.status === 422) {
+				console.log("errors");
+			  }
+			}).finally(()=>{setIsLoading(false)});
+	}
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="form-fields">
