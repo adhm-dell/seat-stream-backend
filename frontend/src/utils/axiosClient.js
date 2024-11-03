@@ -1,13 +1,17 @@
 import axios from "axios";
+import { cookies } from 'next/headers';
+
+
 const axiosClient = axios.create({
   baseURL: "http://127.0.0.1:8000/api",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    Authorization: `Bearer ${cookies().get("ACCESS_TOKEN")}`,
   },
 });
+
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("ACCESS_TOKEN");
+  const token = cookies().get("ACCESS_TOKEN");
   config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -19,7 +23,7 @@ axiosClient.interceptors.response.use(
   (error) => {
     try {
       if (error.response.status === 401) {
-        localStorage.removeItem("ACCESS_TOKEN");
+        cookies().delete("ACCESS_TOKEN");
         window.location.href = "/login";
       }
     } catch (error) {
